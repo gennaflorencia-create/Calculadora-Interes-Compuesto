@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Interés Compuesto - Cripto Love</title>
+    <meta name="description" content="Descubre el verdadero poder de invertir tu dinero">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        
+        .calc-container {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+        
+        .calc-wrapper {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .calc-header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+        
+        .calc-title {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .calc-subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .calc-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        .calc-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+        
+        @media (max-width: 768px) {
+            .calc-grid {
+                grid-template-columns: 1fr;
+            }
+            .calc-title {
+                font-size: 2rem;
+            }
+        }
+        
+        .calc-section-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #5b21b6;
+            margin-bottom: 30px;
+        }
+        
+        .calc-input-group {
+            margin-bottom: 25px;
+        }
+        
+        .calc-label {
+            display: block;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+            font-size: 1rem;
+        }
+        
+        .calc-input, .calc-select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e9d5ff;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            transition: border-color 0.3s;
+        }
+        
+        .calc-input:focus, .calc-select:focus {
+            outline: none;
+            border-color: #9333ea;
+        }
+        
+        .calc-value-display {
+            font-size: 0.9rem;
+            color: #6b7280;
+            margin-top: 5px;
+        }
+        
+        .calc-slider {
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: #e9d5ff;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        
+        .calc-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #9333ea;
+            cursor: pointer;
+        }
+        
+        .calc-slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #9333ea;
+            cursor: pointer;
+            border: none;
+        }
+        
+        .calc-range-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            color: #6b7280;
+            margin-top: 5px;
+        }
+        
+        .calc-result-box {
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            border: 2px solid;
+        }
+        
+        .result-green {
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            border-color: #86efac;
+        }
+        
+        .result-red {
+            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+            border-color: #fca5a5;
+        }
+        
+        .result-blue {
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            border-color: #93c5fd;
+        }
+        
+        .result-purple {
+            background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%);
+            border-color: #d8b4fe;
+        }
+        
+        .result-orange {
+            background: linear-gradient(135deg, #ffedd5 0%, #fed7aa 100%);
+            border-color: #fdba74;
+        }
+        
+        .result-label {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .result-value {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+        
+        .result-extra {
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+        
+        .calc-chart-container {
+            margin-top: 40px;
+            position: relative;
+            height: 400px;
+        }
+        
+        .calc-insight {
+            background: linear-gradient(135deg, #f3e8ff 0%, #fce7f3 100%);
+            padding: 25px;
+            border-radius: 12px;
+            border: 2px solid #d8b4fe;
+            margin-top: 30px;
+        }
+        
+        .insight-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #5b21b6;
+            margin-bottom: 15px;
+        }
+        
+        .insight-text {
+            color: #6b21a8;
+            line-height: 1.6;
+            font-size: 1rem;
+        }
+        
+        .calc-footer {
+            text-align: center;
+            color: white;
+            margin-top: 30px;
+            font-size: 1.1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="calc-container">
+        <div class="calc-wrapper">
+            <div class="calc-header">
+                <h1 class="calc-title">✨ Calculadora de Interés Compuesto</h1>
+                <p class="calc-subtitle">Descubre el verdadero poder de invertir tu dinero</p>
+            </div>
+
+            <div class="calc-card">
+                <div class="calc-grid">
+                    <div>
+                        <h2 class="calc-section-title">⚙️ Configura tu Inversión</h2>
+                        
+                        <div class="calc-input-group">
+                            <label class="calc-label">💰 Capital Inicial</label>
+                            <input type="number" id="capitalInicial" class="calc-input" value="1000" min="0" step="100">
+                            <div class="calc-value-display" id="displayCapital">€1.000</div>
+                        </div>
+
+                        <div class="calc-input-group">
+                            <label class="calc-label">📈 Aportación Periódica</label>
+                            <input type="number" id="aportacion" class="calc-input" value="100" min="0" step="10">
+                            <div class="calc-value-display" id="displayAportacion">€100</div>
+                        </div>
+
+                        <div class="calc-input-group">
+                            <label class="calc-label">📅 Frecuencia de Aportación</label>
+                            <select id="frecuencia" class="calc-select">
+                                <option value="diario">Diaria</option>
+                                <option value="mensual" selected>Mensual</option>
+                                <option value="anual">Anual</option>
+                            </select>
+                        </div>
+
+                        <div class="calc-input-group">
+                            <label class="calc-label">⏱️ Años de Inversión: <span id="displayAños">10</span></label>
+                            <input type="range" id="años" class="calc-slider" value="10" min="1" max="30">
+                            <div class="calc-range-labels">
+                                <span>1 año</span>
+                                <span>30 años</span>
+                            </div>
+                        </div>
+
+                        <div class="calc-input-group">
+                            <label class="calc-label">🎯 Rentabilidad Anual Esperada: <span id="displayTasa">10</span>%</label>
+                            <input type="range" id="tasaRetorno" class="calc-slider" value="10" min="0" max="50">
+                            <div class="calc-range-labels">
+                                <span>0%</span>
+                                <span>50%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h2 class="calc-section-title">📊 Resultados</h2>
+                        
+                        <div class="calc-result-box result-green">
+                            <div class="result-label" style="color: #065f46;">💎 Con Inversión</div>
+                            <div class="result-value" style="color: #047857;" id="resultConInversion">€0</div>
+                        </div>
+
+                        <div class="calc-result-box result-red">
+                            <div class="result-label" style="color: #991b1b;">📉 Sin Inversión (con inflación 3%)</div>
+                            <div class="result-value" style="color: #b91c1c;" id="resultSinInversion">€0</div>
+                        </div>
+
+                        <div class="calc-result-box result-blue">
+                            <div class="result-label" style="color: #1e40af;">💵 Total Invertido</div>
+                            <div class="result-value" style="color: #1d4ed8;" id="resultTotalInvertido">€0</div>
+                        </div>
+
+                        <div class="calc-result-box result-purple">
+                            <div class="result-label" style="color: #6b21a8;">✨ Ganancia por Inversión</div>
+                            <div class="result-value" style="color: #7c3aed;" id="resultGanancia">€0</div>
+                            <div class="result-extra" style="color: #7c3aed;" id="resultPorcentaje"></div>
+                        </div>
+
+                        <div class="calc-result-box result-orange">
+                            <div class="result-label" style="color: #9a3412;">🔥 Diferencia Total</div>
+                            <div class="result-value" style="color: #c2410c;" id="resultDiferencia">€0</div>
+                            <div class="result-extra" style="color: #c2410c;">¡Esto es lo que pierdes sin invertir!</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <h2 class="calc-section-title">📈 Evolución en el Tiempo</h2>
+                    <div class="calc-chart-container">
+                        <canvas id="myChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="calc-insight">
+                    <h3 class="insight-title">💡 La Magia del Interés Compuesto</h3>
+                    <p class="insight-text" id="insightText"></p>
+                </div>
+            </div>
+
+            <div class="calc-footer">
+                <p>✨ <strong>Cripto Love</strong> - Transformando vidas a través de la libertad financiera</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let myChart = null;
+
+        function formatearMoneda(valor) {
+            return new Intl.NumberFormat('es-ES', {
+                style: 'currency',
+                currency: 'EUR',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            }).format(valor);
+        }
+
+        function calcularYActualizar() {
+            const capitalInicial = parseFloat(document.getElementById('capitalInicial').value) || 0;
+            const aportacion = parseFloat(document.getElementById('aportacion').value) || 0;
+            const frecuencia = document.getElementById('frecuencia').value;
+            const años = parseInt(document.getElementById('años').value);
+            const tasaRetorno = parseFloat(document.getElementById('tasaRetorno').value);
+            const inflacion = 3;
+
+            // Actualizar displays
+            document.getElementById('displayCapital').textContent = formatearMoneda(capitalInicial);
+            document.getElementById('displayAportacion').textContent = formatearMoneda(aportacion);
+            document.getElementById('displayAños').textContent = años;
+            document.getElementById('displayTasa').textContent = tasaRetorno;
+
+            const aportacionesPorAño = {
+                'diario': 365,
+                'mensual': 12,
+                'anual': 1
+            };
+
+            const n = aportacionesPorAño[frecuencia];
+            const r = tasaRetorno / 100;
+            const i = inflacion / 100;
+
+            let resultados = [];
+            let labels = [];
+            let dataConInversion = [];
+            let dataSinInversion = [];
+            let dataTotalInvertido = [];
+
+            let totalInvertido = capitalInicial;
+            let valorConInversion = capitalInicial;
+            let valorSinInversion = capitalInicial;
+
+            for (let año = 0; año <= años; año++) {
+                if (año > 0) {
+                    valorConInversion = valorConInversion * (1 + r);
+                    
+                    for (let j = 0; j < n; j++) {
+                        valorConInversion += aportacion;
+                        totalInvertido += aportacion;
+                    }
+                    
+                    valorSinInversion = valorSinInversion * (1 - i);
+                    
+                    for (let j = 0; j < n; j++) {
+                        valorSinInversion += aportacion;
+                    }
+                    
+                    valorSinInversion = valorSinInversion * (1 - i);
+                }
+
+                labels.push(año);
+                dataConInversion.push(Math.round(valorConInversion));
+                dataSinInversion.push(Math.round(valorSinInversion));
+                dataTotalInvertido.push(Math.round(totalInvertido));
+            }
+
+            const resultadoFinal = {
+                conInversion: Math.round(valorConInversion),
+                sinInversion: Math.round(valorSinInversion),
+                totalInvertido: Math.round(totalInvertido)
+            };
+
+            const ganancia = resultadoFinal.conInversion - resultadoFinal.totalInvertido;
+            const perdidaPorInflacion = resultadoFinal.totalInvertido - resultadoFinal.sinInversion;
+            const diferencia = resultadoFinal.conInversion - resultadoFinal.sinInversion;
+
+            // Actualizar resultados
+            document.getElementById('resultConInversion').textContent = formatearMoneda(resultadoFinal.conInversion);
+            document.getElementById('resultSinInversion').textContent = formatearMoneda(resultadoFinal.sinInversion);
+            document.getElementById('resultTotalInvertido').textContent = formatearMoneda(resultadoFinal.totalInvertido);
+            document.getElementById('resultGanancia').textContent = formatearMoneda(ganancia);
+            document.getElementById('resultPorcentaje').textContent = '+' + Math.round((ganancia / resultadoFinal.totalInvertido) * 100) + '%';
+            document.getElementById('resultDiferencia').textContent = formatearMoneda(diferencia);
+
+            // Actualizar insight
+            document.getElementById('insightText').innerHTML = 
+                `En ${años} años, invertir tu dinero te generaría <strong>${formatearMoneda(ganancia)}</strong> adicionales. 
+                Mientras que sin invertir, perderías <strong>${formatearMoneda(perdidaPorInflacion)}</strong> por la inflación. 
+                La diferencia total es de <strong style="font-size: 1.2em;">${formatearMoneda(diferencia)}</strong>. 
+                ¡Este es el poder de hacer que tu dinero trabaje para ti!`;
+
+            // Actualizar gráfico
+            if (myChart) {
+                myChart.destroy();
+            }
+
+            const ctx = document.getElementById('myChart').getContext('2d');
+            myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: '💎 Con Inversión',
+                            data: dataConInversion,
+                            borderColor: '#10b981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            borderWidth: 3,
+                            tension: 0.4,
+                            fill: true
+                        },
+                        {
+                            label: '📉 Sin Inversión',
+                            data: dataSinInversion,
+                            borderColor: '#ef4444',
+                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                            borderWidth: 3,
+                            tension: 0.4,
+                            fill: true
+                        },
+                        {
+                            label: '💵 Total Invertido',
+                            data: dataTotalInvertido,
+                            borderColor: '#3b82f6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            tension: 0.4,
+                            fill: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                font: {
+                                    size: 14,
+                                    weight: 'bold'
+                                },
+                                padding: 15
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + formatearMoneda(context.parsed.y);
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Años',
+                                font: {
+                                    size: 14,
+                                    weight: 'bold'
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(233, 213, 255, 0.3)'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Euros (€)',
+                                font: {
+                                    size: 14,
+                                    weight: 'bold'
+                                }
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return formatearMoneda(value);
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(233, 213, 255, 0.3)'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Event listeners
+        document.getElementById('capitalInicial').addEventListener('input', calcularYActualizar);
+        document.getElementById('aportacion').addEventListener('input', calcularYActualizar);
+        document.getElementById('frecuencia').addEventListener('change', calcularYActualizar);
+        document.getElementById('años').addEventListener('input', calcularYActualizar);
+        document.getElementById('tasaRetorno').addEventListener('input', calcularYActualizar);
+
+        // Calcular al cargar
+        calcularYActualizar();
+    </script>
+</body>
+</html>
