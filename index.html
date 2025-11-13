@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Interés Compuesto - Cripto Love</title>
+    <meta name="description" content="Descubre el verdadero poder de invertir tu dinero con nuestra calculadora de interés compuesto">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- React and ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Recharts -->
+    <script src="https://unpkg.com/recharts@2.5.0/dist/Recharts.js"></script>
+    
+    <!-- Babel Standalone for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useMemo } = React;
+        const { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } = Recharts;
+
+        function CalculadoraInteresCompuesto() {
+            const [capitalInicial, setCapitalInicial] = useState(1000);
+            const [aportacion, setAportacion] = useState(100);
+            const [frecuencia, setFrecuencia] = useState('mensual');
+            const [años, setAños] = useState(10);
+            const [tasaRetorno, setTasaRetorno] = useState(10);
+            const inflacion = 3;
+
+            const calcularInversion = useMemo(() => {
+                const aportacionesPorAño = {
+                    'diario': 365,
+                    'mensual': 12,
+                    'anual': 1
+                };
+
+                const n = aportacionesPorAño[frecuencia];
+                const r = tasaRetorno / 100;
+                const i = inflacion / 100;
+                const t = años;
+
+                let resultados = [];
+                let totalInvertido = capitalInicial;
+                let valorConInversion = capitalInicial;
+                let valorSinInversion = capitalInicial;
+
+                for (let año = 0; año <= t; año++) {
+                    if (año > 0) {
+                        // Cálculo con inversión (interés compuesto)
+                        valorConInversion = valorConInversion * (1 + r);
+                        
+                        // Agregar aportaciones del año
+                        for (let i = 0; i < n; i++) {
+                            valorConInversion += aportacion;
+                            totalInvertido += aportacion;
+                        }
+                        
+                        // Cálculo sin inversión (solo inflación negativa)
+                        valorSinInversion = valorSinInversion * (1 - i);
+                        
+                        // Agregar aportaciones del año sin inversión
+                        for (let i = 0; i < n; i++) {
+                            valorSinInversion += aportacion;
+                        }
+                        
+                        // Aplicar inflación a lo aportado en el año
+                        valorSinInversion = valorSinInversion * (1 - i);
+                    }
+
+                    resultados.push({
+                        año: año,
+                        conInversion: Math.round(valorConInversion),
+                        sinInversion: Math.round(valorSinInversion),
+                        totalInvertido: Math.round(totalInvertido)
+                    });
+                }
+
+                return resultados;
+            }, [capitalInicial, aportacion, frecuencia, años, tasaRetorno]);
+
+            const resultadoFinal = calcularInversion[calcularInversion.length - 1];
+            const ganancia = resultadoFinal.conInversion - resultadoFinal.totalInvertido;
+            const perdidaPorInflacion = resultadoFinal.totalInvertido - resultadoFinal.sinInversion;
+            const diferencia = resultadoFinal.conInversion - resultadoFinal.sinInversion;
+
+            const formatearMoneda = (valor) => {
+                return new Intl.NumberFormat('es-ES', {
+                    style: 'currency',
+                    currency: 'EUR',
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0
+                }).format(valor);
+            };
+
+            return (
+                <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-pink-800 py-12 px-4">
+                    <div className="max-w-6xl mx-auto">
+                        <div className="text-center mb-8">
+                            <h1 className="text-4xl md:text-5xl font-bold text-white mb-3">
+                                ✨ Calculadora de Interés Compuesto
+                            </h1>
+                            <p className="text-purple-200 text-lg">
+                                Descubre el verdadero poder de invertir tu dinero
+                            </p>
+                        </div>
+
+                        <div className="bg-white rounded-2xl shadow-2xl p-8 mb-8">
+                            <div className="grid md:grid-cols-2 gap-8 mb-8">
+                                <div>
+                                    <h2 className="text-2xl font-bold text-purple-900 mb-6">⚙️ Configura tu Inversión</h2>
+                                    
+                                    <div className="space-y-6">
+                                        <div>
+                                            <label className="block text-gray-700 font-semibold mb-2">
+                                                💰 Capital Inicial
+                                            </label>
+                                            <input
+                                                type="number"
+                                                value={capitalInicial}
+                                                onChange={(e) => setCapitalInicial(Number(e.target.value))}
+                                                className="w-full px-4 py-3 border-2 border-purple-200 rounded-lg focus:border-purple-500 focus:outline-none text-lg"
+                                                min="0"
+                                                step="100"
+                                            />
+                                            <p className="text-sm text-gray-500 mt-1">{formatearMoneda(capitalInicial)}</p>
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-gray-700 font-semibold mb-2">
+                                                📈 Aportación Periódica
+                                            </label>
+                                            <input
+                                                type="number"
+                                                value={aportacion}
+                                                onChange={(e) => setAportacion(Number(e.target.value))}
+                                                className="w-full px-4 py-3 border-2 border-purple-200 rounded-lg focus:border-purple-500 focus:outline-none text-lg"
+                                                min="0"
+                                                step="10"
+                                            />
+                                            <p className="text-sm text-gray-500 mt-1">{formatearMoneda(aportacion)}</p>
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-gray-700 font-semibold mb-2">
+                                                📅 Frecuencia de Aportación
+                                            </label>
+                                            <select
+                                                value={frecuencia}
+                                                onChange={(e) => setFrecuencia(e.target.value)}
+                                                className="w-full px-4 py-3 border-2 border-purple-200 rounded-lg focus:border-purple-500 focus:outline-none text-lg"
+                                            >
+                                                <option value="diario">Diaria</option>
+                                                <option value="mensual">Mensual</option>
+                                                <option value="anual">Anual</option>
+                                            </select>
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-gray-700 font-semibold mb-2">
+                                                ⏱️ Años de Inversión: {años}
+                                            </label>
+                                            <input
+                                                type="range"
+                                                value={años}
+                                                onChange={(e) => setAños(Number(e.target.value))}
+                                                className="w-full h-2 bg-purple-200 rounded-lg appearance-none cursor-pointer"
+                                                min="1"
+                                                max="30"
+                                            />
+                                            <div className="flex justify-between text-sm text-gray-500">
+                                                <span>1 año</span>
+                                                <span>30 años</span>
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-gray-700 font-semibold mb-2">
+                                                🎯 Rentabilidad Anual Esperada: {tasaRetorno}%
+                                            </label>
+                                            <input
+                                                type="range"
+                                                value={tasaRetorno}
+                                                onChange={(e) => setTasaRetorno(Number(e.target.value))}
+                                                className="w-full h-2 bg-purple-200 rounded-lg appearance-none cursor-pointer"
+                                                min="0"
+                                                max="50"
+                                            />
+                                            <div className="flex justify-between text-sm text-gray-500">
+                                                <span>0%</span>
+                                                <span>50%</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <h2 className="text-2xl font-bold text-purple-900 mb-6">📊 Resultados</h2>
+                                    
+                                    <div className="space-y-4">
+                                        <div className="bg-gradient-to-r from-green-50 to-green-100 p-5 rounded-xl border-2 border-green-300">
+                                            <p className="text-sm text-green-700 font-semibold mb-1">💎 Con Inversión</p>
+                                            <p className="text-3xl font-bold text-green-800">
+                                                {formatearMoneda(resultadoFinal.conInversion)}
+                                            </p>
+                                        </div>
+
+                                        <div className="bg-gradient-to-r from-red-50 to-red-100 p-5 rounded-xl border-2 border-red-300">
+                                            <p className="text-sm text-red-700 font-semibold mb-1">📉 Sin Inversión (con inflación 3%)</p>
+                                            <p className="text-3xl font-bold text-red-800">
+                                                {formatearMoneda(resultadoFinal.sinInversion)}
+                                            </p>
+                                        </div>
+
+                                        <div className="bg-gradient-to-r from-blue-50 to-blue-100 p-5 rounded-xl border-2 border-blue-300">
+                                            <p className="text-sm text-blue-700 font-semibold mb-1">💵 Total Invertido</p>
+                                            <p className="text-3xl font-bold text-blue-800">
+                                                {formatearMoneda(resultadoFinal.totalInvertido)}
+                                            </p>
+                                        </div>
+
+                                        <div className="bg-gradient-to-r from-purple-50 to-pink-100 p-5 rounded-xl border-2 border-purple-300">
+                                            <p className="text-sm text-purple-700 font-semibold mb-1">✨ Ganancia por Inversión</p>
+                                            <p className="text-3xl font-bold text-purple-800">
+                                                {formatearMoneda(ganancia)}
+                                            </p>
+                                            <p className="text-sm text-purple-600 mt-1">
+                                                +{Math.round((ganancia / resultadoFinal.totalInvertido) * 100)}%
+                                            </p>
+                                        </div>
+
+                                        <div className="bg-gradient-to-r from-yellow-50 to-orange-100 p-5 rounded-xl border-2 border-yellow-300">
+                                            <p className="text-sm text-orange-700 font-semibold mb-1">🔥 Diferencia Total</p>
+                                            <p className="text-3xl font-bold text-orange-800">
+                                                {formatearMoneda(diferencia)}
+                                            </p>
+                                            <p className="text-sm text-orange-600 mt-1">
+                                                ¡Esto es lo que pierdes sin invertir!
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="mt-8">
+                                <h2 className="text-2xl font-bold text-purple-900 mb-6">📈 Evolución en el Tiempo</h2>
+                                <ResponsiveContainer width="100%" height={400}>
+                                    <LineChart data={calcularInversion}>
+                                        <CartesianGrid strokeDasharray="3 3" stroke="#e9d5ff" />
+                                        <XAxis 
+                                            dataKey="año" 
+                                            label={{ value: 'Años', position: 'insideBottom', offset: -5 }}
+                                            stroke="#6b21a8"
+                                        />
+                                        <YAxis 
+                                            label={{ value: 'Euros (€)', angle: -90, position: 'insideLeft' }}
+                                            stroke="#6b21a8"
+                                            tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
+                                        />
+                                        <Tooltip 
+                                            formatter={(value) => formatearMoneda(value)}
+                                            contentStyle={{ backgroundColor: '#fff', border: '2px solid #9333ea', borderRadius: '8px' }}
+                                        />
+                                        <Legend 
+                                            wrapperStyle={{ paddingTop: '20px' }}
+                                        />
+                                        <Line 
+                                            type="monotone" 
+                                            dataKey="conInversion" 
+                                            stroke="#10b981" 
+                                            strokeWidth={3}
+                                            name="💎 Con Inversión"
+                                            dot={{ fill: '#10b981', r: 4 }}
+                                        />
+                                        <Line 
+                                            type="monotone" 
+                                            dataKey="sinInversion" 
+                                            stroke="#ef4444" 
+                                            strokeWidth={3}
+                                            name="📉 Sin Inversión"
+                                            dot={{ fill: '#ef4444', r: 4 }}
+                                        />
+                                        <Line 
+                                            type="monotone" 
+                                            dataKey="totalInvertido" 
+                                            stroke="#3b82f6" 
+                                            strokeWidth={2}
+                                            strokeDasharray="5 5"
+                                            name="💵 Total Invertido"
+                                            dot={{ fill: '#3b82f6', r: 3 }}
+                                        />
+                                    </LineChart>
+                                </ResponsiveContainer>
+                            </div>
+
+                            <div className="mt-8 bg-gradient-to-r from-purple-100 to-pink-100 p-6 rounded-xl border-2 border-purple-300">
+                                <h3 className="text-xl font-bold text-purple-900 mb-3">💡 La Magia del Interés Compuesto</h3>
+                                <p className="text-purple-800 leading-relaxed">
+                                    En {años} años, invertir tu dinero te generaría <span className="font-bold">{formatearMoneda(ganancia)}</span> adicionales.
+                                    Mientras que sin invertir, perderías <span className="font-bold">{formatearMoneda(perdidaPorInflacion)}</span> por la inflación.
+                                    La diferencia total es de <span className="font-bold text-2xl">{formatearMoneda(diferencia)}</span>. 
+                                    ¡Este es el poder de hacer que tu dinero trabaje para ti!
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="text-center text-white">
+                            <p className="text-lg opacity-90">
+                                ✨ <span className="font-semibold">Cripto Love</span> - Transformando vidas a través de la libertad financiera
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        ReactDOM.render(<CalculadoraInteresCompuesto />, document.getElementById('root'));
+    </script>
+</body>
+</html>
